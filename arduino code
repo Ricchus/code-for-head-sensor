@@ -1,0 +1,122 @@
+long times;
+long durations;
+boolean counts=false;
+#include <Wire.h>
+#include <Adafruit_MMA8451.h>
+#include <Adafruit_Sensor.h>
+
+Adafruit_MMA8451 mma = Adafruit_MMA8451();
+
+void setup(void) {
+  pinMode(8,OUTPUT);
+  pinMode(9,OUTPUT);
+  pinMode(10,OUTPUT);
+  pinMode(11,OUTPUT);
+  pinMode(12,OUTPUT);
+  Serial.begin(9600);
+  
+  Serial.println("Adafruit MMA8451 test!");
+  
+
+  if (! mma.begin()) {
+    Serial.println("Couldnt start");
+    while (1);
+  }
+  Serial.println("MMA8451 found!");
+  
+  mma.setRange(MMA8451_RANGE_2_G);
+  
+  Serial.print("Range = "); Serial.print(2 << mma.getRange());  
+  Serial.println("G");
+  
+}
+
+void loop() {
+  // Read the 'raw' data in 14-bit counts
+  mma.read();
+  Serial.print("X:\t"); Serial.print(mma.x); 
+  Serial.print("\tY:\t"); Serial.print(mma.y); 
+  Serial.print("\tZ:\t"); Serial.print(mma.z); 
+  Serial.println();
+
+  /* Get a new sensor event */ 
+  sensors_event_t event; 
+  mma.getEvent(&event);
+
+  /* Display the results (acceleration is measured in m/s^2) */
+  Serial.print("X: \t"); Serial.print(event.acceleration.x); Serial.print("\t");
+  Serial.print("Y: \t"); Serial.print(event.acceleration.y); Serial.print("\t");
+  Serial.print("Z: \t"); Serial.print(event.acceleration.z); Serial.print("\t");
+  Serial.println("m/s^2 ");
+
+  if(event.acceleration.x>9.00&&event.acceleration.x<10.00){
+    if(counts==false){
+    times=millis();
+    counts=true;
+    }
+    durations=millis()-times;
+    }else{
+    if(counts==true){
+        times=0;
+        counts=false;
+        durations=0;
+        }
+      }
+
+  if(durations>1000){
+    digitalWrite(8,HIGH);
+    }
+  if(durations>2000){
+    digitalWrite(9,HIGH);
+    }
+  if(durations>3000){
+    digitalWrite(10,HIGH);
+    }
+  if(durations>4000){
+    digitalWrite(11,HIGH);
+    }
+  if(durations>5000){
+    digitalWrite(12,HIGH);
+    }
+  if(durations==0){
+    digitalWrite(12,LOW);
+    digitalWrite(11,LOW);
+    digitalWrite(10,LOW);
+    digitalWrite(9,LOW);
+    digitalWrite(8,LOW);
+    }
+
+  
+  /* Get the orientation of the sensor */
+  uint8_t o = mma.getOrientation();
+  
+  switch (o) {
+    case MMA8451_PL_PUF: 
+      Serial.println("Portrait Up Front");
+      break;
+    case MMA8451_PL_PUB: 
+      Serial.println("Portrait Up Back");
+      break;    
+    case MMA8451_PL_PDF: 
+      Serial.println("Portrait Down Front");
+      break;
+    case MMA8451_PL_PDB: 
+      Serial.println("Portrait Down Back");
+      break;
+    case MMA8451_PL_LRF: 
+      Serial.println("Landscape Right Front");
+      break;
+    case MMA8451_PL_LRB: 
+      Serial.println("Landscape Right Back");
+      break;
+    case MMA8451_PL_LLF: 
+      Serial.println("Landscape Left Front");
+      break;
+    case MMA8451_PL_LLB: 
+      Serial.println("Landscape Left Back");
+      break;
+    }
+  Serial.println();
+  delay(500);
+  
+}
